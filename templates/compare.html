@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Compare two countries side by side on HDI indicators — Life Expectancy, Education, Income, and predicted development tiers.">
+  <title>HDI Predictor - Country Comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+  <div class="app-layout">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    {% include 'partials/sidebar.html' %}
+
+    <div class="app-main">
+      <header class="app-topbar">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle navigation">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <div>
+          <div class="topbar-title">Country Comparison</div>
+          <div class="topbar-subtitle">Side-by-side HDI indicator analysis</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="content-panel">
+
+          <header class="dashboard-header mb-0 pb-4">
+            <h1 class="dashboard-title">Country Comparison</h1>
+            <p class="dashboard-subtitle">Select two countries from the dataset to compare development indicators, predicted HDI categories, and overall profiles.</p>
+          </header>
+
+          <!-- Selection Form -->
+          <section class="section-block">
+            <div class="card glass-card border-0 p-4 hover-up">
+              <div class="row g-4 align-items-end">
+                <div class="col-md-5">
+                  <label for="country-a" class="form-label fw-semibold">
+                    <i class="bi bi-flag-fill me-1" style="color: var(--color-primary);"></i> Country A
+                  </label>
+                  <select id="country-a" class="form-select" aria-label="Select Country A">
+                    <option value="">Loading countries...</option>
+                  </select>
+                </div>
+                <div class="col-md-2 text-center d-none d-md-block">
+                  <div class="compare-vs-badge">VS</div>
+                </div>
+                <div class="col-md-5">
+                  <label for="country-b" class="form-label fw-semibold">
+                    <i class="bi bi-flag-fill me-1" style="color: var(--tier-high);"></i> Country B
+                  </label>
+                  <select id="country-b" class="form-select" aria-label="Select Country B">
+                    <option value="">Loading countries...</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <div id="compare-form-error" class="alert alert-danger d-none mb-3" role="alert"></div>
+                  <button type="button" id="btn-compare" class="btn btn-primary btn-lg px-5">
+                    <i class="bi bi-arrows-angle-expand me-2"></i>Compare Countries
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Results (hidden until compare) -->
+          <div id="compare-results" class="d-none">
+
+            <!-- Side-by-side country cards -->
+            <section class="section-block" aria-label="Country profiles">
+              <div class="row g-4">
+                <div class="col-lg-6">
+                  <div class="card glass-card border-0 compare-country-card h-100 hover-up" id="card-country-a">
+                    <div class="compare-country-header compare-header-a">
+                      <i class="bi bi-geo-alt-fill"></i>
+                      <span id="name-country-a">Country A</span>
+                    </div>
+                    <div class="compare-country-body" id="metrics-country-a"></div>
+                  </div>
+                </div>
+                <div class="col-lg-6">
+                  <div class="card glass-card border-0 compare-country-card h-100 hover-up" id="card-country-b">
+                    <div class="compare-country-header compare-header-b">
+                      <i class="bi bi-geo-alt-fill"></i>
+                      <span id="name-country-b">Country B</span>
+                    </div>
+                    <div class="compare-country-body" id="metrics-country-b"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Comparison table with highlights -->
+            <section class="section-block" aria-label="Indicator comparison">
+              <h2 class="section-heading">Indicator Comparison</h2>
+              <div class="card glass-card border-0 p-0 overflow-hidden hover-up">
+                <div class="table-responsive">
+                  <table class="table compare-table mb-0" id="comparison-table">
+                    <thead>
+                      <tr>
+                        <th>Indicator</th>
+                        <th class="text-center compare-col-a">Country A</th>
+                        <th class="text-center compare-col-b">Country B</th>
+                        <th class="text-center">Leader</th>
+                      </tr>
+                    </thead>
+                    <tbody id="comparison-table-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <!-- Radar chart -->
+            <section class="section-block" aria-label="Radar chart">
+              <h2 class="section-heading">HDI Indicator Radar Chart</h2>
+              <div class="card glass-card chart-card border-0 hover-up">
+                <p class="text-secondary small mb-3">Normalized comparison of the four core HDI indicators (0–100 scale).</p>
+                <div id="compare-radar-chart" class="plotly-chart-container" style="height: 420px;"></div>
+              </div>
+            </section>
+
+            <!-- Summary -->
+            <section class="section-block" aria-label="Comparison summary">
+              <h2 class="section-heading">Comparison Summary</h2>
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <div class="card glass-card border-0 p-4 compare-summary-card compare-summary-a hover-up">
+                    <div class="compare-summary-icon"><i class="bi bi-trophy"></i></div>
+                    <p class="mb-0 fw-semibold" id="summary-message-a"></p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card glass-card border-0 p-4 compare-summary-card compare-summary-b hover-up">
+                    <div class="compare-summary-icon"><i class="bi bi-trophy"></i></div>
+                    <p class="mb-0 fw-semibold" id="summary-message-b"></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Winner card -->
+            <section class="section-block" aria-label="Overall winner">
+              <div class="card glass-card border-0 compare-winner-card text-center p-5 hover-up" id="winner-card">
+                <div class="compare-winner-badge mb-3">
+                  <i class="bi bi-award-fill fs-1"></i>
+                </div>
+                <p class="text-uppercase fw-bold mb-2 compare-winner-label" id="winner-title">Overall Better HDI Profile</p>
+                <h2 class="fw-extrabold mb-3" style="font-family: var(--font-display); font-size: 2rem;" id="winner-name"></h2>
+                <p class="text-secondary mb-0 mx-auto" style="max-width: 560px;" id="winner-reason"></p>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+
+      {% include 'partials/footer.html' %}
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/compare.js') }}"></script>
+</body>
+</html>

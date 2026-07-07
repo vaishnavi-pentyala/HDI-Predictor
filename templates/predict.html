@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Calculate and predict a country's Human Development Index (HDI) tier in real-time.">
+  <title>HDI Predictor - Predictor Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+  <div class="app-layout">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    {% include 'partials/sidebar.html' %}
+
+    <div class="app-main">
+      <header class="app-topbar">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle navigation">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <div>
+          <div class="topbar-title">Predictor Portal</div>
+          <div class="topbar-subtitle">Calculate HDI &amp; predict development tiers</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="content-panel">
+          <div class="row g-4">
+
+            <!-- Input Form -->
+            <section class="col-lg-6">
+              <div class="card glass-card p-4 border-0 h-100">
+                <div class="border-bottom pb-3 mb-4">
+                  <h2 class="h4 fw-bold mb-1" style="font-family: var(--font-display);">Development Indicators</h2>
+                  <p class="text-secondary small mb-0">Input country metrics to calculate HDI and predict categories using Machine Learning.</p>
+                </div>
+
+                <form id="prediction-form">
+                  <div id="form-errors" class="alert alert-danger d-none mb-4"></div>
+
+                  <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <label for="input-life" class="form-label fw-semibold d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-heart-pulse" style="color: var(--tier-low);"></i>
+                        Life Expectancy
+                        <span class="text-muted" style="cursor: help; font-size: 0.8rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Average number of years a newborn is expected to live. Range: 20–85.">ⓘ</span>
+                      </label>
+                      <div class="input-group input-group-sm" style="width: 100px;">
+                        <input type="number" id="num-life" class="form-control text-center fw-bold" min="20" max="85" step="0.1" value="72.8" required>
+                        <span class="input-group-text text-muted" style="font-size: 0.75rem;">yrs</span>
+                      </div>
+                    </div>
+                    <input type="range" id="input-life" class="form-range" min="20" max="85" step="0.1" value="72.8" aria-label="Life Expectancy Slider">
+                    <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;"><span>20 yrs</span><span>85 yrs</span></div>
+                  </div>
+
+                  <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <label for="input-eys" class="form-label fw-semibold d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-book" style="color: var(--tier-high);"></i>
+                        Expected Schooling (EYS)
+                        <span class="text-muted" style="cursor: help; font-size: 0.8rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Years of schooling a child can expect. Range: 0–18.">ⓘ</span>
+                      </label>
+                      <div class="input-group input-group-sm" style="width: 100px;">
+                        <input type="number" id="num-eys" class="form-control text-center fw-bold" min="0" max="18" step="0.1" value="12.7" required>
+                        <span class="input-group-text text-muted" style="font-size: 0.75rem;">yrs</span>
+                      </div>
+                    </div>
+                    <input type="range" id="input-eys" class="form-range" min="0" max="18" step="0.1" value="12.7" aria-label="Expected Years of Schooling Slider">
+                    <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;"><span>0 EYS</span><span>18 EYS</span></div>
+                  </div>
+
+                  <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <label for="input-mys" class="form-label fw-semibold d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-mortarboard" style="color: var(--tier-high);"></i>
+                        Mean Schooling (MYS)
+                        <span class="text-muted" style="cursor: help; font-size: 0.8rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Average years of education for adults 25+. Range: 0–15. Must be ≤ EYS.">ⓘ</span>
+                      </label>
+                      <div class="input-group input-group-sm" style="width: 100px;">
+                        <input type="number" id="num-mys" class="form-control text-center fw-bold" min="0" max="15" step="0.1" value="8.6" required>
+                        <span class="input-group-text text-muted" style="font-size: 0.75rem;">yrs</span>
+                      </div>
+                    </div>
+                    <input type="range" id="input-mys" class="form-range" min="0" max="15" step="0.1" value="8.6" aria-label="Mean Years of Schooling Slider">
+                    <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;"><span>0 MYS</span><span>15 MYS</span></div>
+                  </div>
+
+                  <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <label for="input-gni" class="form-label fw-semibold d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-cash-stack" style="color: var(--tier-medium);"></i>
+                        GNI per Capita (PPP $)
+                        <span class="text-muted" style="cursor: help; font-size: 0.8rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="GNI per capita in PPP dollars. Range: $100–$75,000.">ⓘ</span>
+                      </label>
+                      <div class="input-group input-group-sm" style="width: 130px;">
+                        <span class="input-group-text text-muted" style="font-size: 0.75rem;">$</span>
+                        <input type="number" id="num-gni" class="form-control text-center fw-bold" min="100" max="75000" step="10" value="16700" required>
+                      </div>
+                    </div>
+                    <input type="range" id="input-gni" class="form-range" min="0" max="100" step="0.1" value="62.5" aria-label="Logarithmic GNI Slider">
+                    <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;"><span>$100</span><span>$75,000</span></div>
+                  </div>
+
+                  <div class="d-flex flex-column gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center gap-2" id="btn-predict">
+                      <span class="btn-text"><i class="bi bi-lightning-charge-fill"></i> Predict HDI Category</span>
+                      <span class="spinner-border spinner-border-sm d-none loader" role="status" aria-hidden="true"></span>
+                    </button>
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <button type="button" class="btn btn-outline-secondary w-100" id="btn-reset">Reset Form</button>
+                      </div>
+                      <div class="col-6">
+                        <button type="button" class="btn btn-outline-secondary w-100" id="btn-sample">Load Sample</button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+
+                <div class="border-top mt-4 pt-4">
+                  <h3 class="dashboard-metric-label mb-3">Scenario Presets</h3>
+                  <div class="row g-2">
+                    <div class="col-4">
+                      <button type="button" class="btn btn-light border w-100 py-2 hover-up" id="preset-developed">
+                        <span class="d-block mb-1 fs-5">💎</span>
+                        <span class="fw-semibold small">Developed</span>
+                      </button>
+                    </div>
+                    <div class="col-4">
+                      <button type="button" class="btn btn-light border w-100 py-2 hover-up" id="preset-emerging">
+                        <span class="d-block mb-1 fs-5">📈</span>
+                        <span class="fw-semibold small">Emerging</span>
+                      </button>
+                    </div>
+                    <div class="col-4">
+                      <button type="button" class="btn btn-light border w-100 py-2 hover-up" id="preset-least">
+                        <span class="d-block mb-1 fs-5">🌾</span>
+                        <span class="fw-semibold small">Least Dev</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Results Panel -->
+            <section class="col-lg-6" id="results-panel-container">
+              <div class="card glass-card p-5 border-0 text-center h-100 d-flex flex-column align-items-center justify-content-center" id="results-welcome">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mb-4" style="width: 70px; height: 70px; background: var(--color-primary-light); color: var(--color-primary);">
+                  <i class="bi bi-bullseye fs-1"></i>
+                </div>
+                <h3 class="fw-bold mb-2" style="font-family: var(--font-display);">Ready for Prediction</h3>
+                <p class="text-secondary" style="max-width: 350px;">Adjust the indicators and click <strong>Predict HDI Category</strong> to run the machine learning model.</p>
+              </div>
+
+              <div class="d-none" id="results-active">
+                <div class="card glass-card p-4 border-0 mb-4" id="pdf-report-content">
+                  <div class="report-header-print d-none">
+                    <h2 class="fw-bold">HDI PREDICTION &amp; POLICY REPORT</h2>
+                    <p class="text-muted">Generated by HDI Predictor AI Portal</p>
+                    <hr>
+                  </div>
+                  <div class="row align-items-center g-4">
+                    <div class="col-sm-5 d-flex justify-content-center">
+                      <div class="position-relative" style="width: 150px; height: 150px;">
+                        <svg class="w-100 h-100" viewBox="0 0 120 120">
+                          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" stroke-width="8"></circle>
+                          <circle cx="60" cy="60" r="50" fill="none" class="gauge-fill" stroke-width="8" stroke-dasharray="314" stroke-dashoffset="314" stroke-linecap="round" id="gauge-progress-circle"></circle>
+                        </svg>
+                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                          <span class="d-block text-muted fw-bold" style="font-size: 0.6rem; letter-spacing: 0.06em;">CALCULATED HDI</span>
+                          <span class="d-block fw-extrabold fs-2 metric-counter" id="hdi-score-value" style="font-family: var(--font-display); color: var(--color-primary);">0.730</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-sm-7 text-center text-sm-start">
+                      <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill mb-3 tier-badge" id="predicted-tier-badge">
+                        <span class="badge-dot bg-success rounded-circle" style="width: 8px; height: 8px;"></span>
+                        <span class="fw-bold small badge-text" id="predicted-tier-text">High Human Development</span>
+                      </div>
+                      <div class="mb-2 text-secondary">
+                        Model Confidence: <strong id="confidence-value" class="text-dark">87.5%</strong>
+                      </div>
+                      <p class="text-muted small mb-0" id="predicted-tier-range">Score Range: 0.700 – 0.799</p>
+                    </div>
+                  </div>
+                  <hr class="my-4" style="border-color: var(--border-color);">
+                  <div>
+                    <h3 class="dashboard-metric-label mb-3">Dimension Sub-Indices</h3>
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between mb-1"><span class="fw-semibold small">Health Index</span><span class="fw-bold small" id="val-health">0.812</span></div>
+                      <div class="progress" style="height: 6px;"><div class="progress-bar bg-danger" id="bar-health" role="progressbar" style="width: 81.2%"></div></div>
+                    </div>
+                    <div class="mb-3">
+                      <div class="d-flex justify-content-between mb-1"><span class="fw-semibold small">Education Index</span><span class="fw-bold small" id="val-education">0.689</span></div>
+                      <div class="progress" style="height: 6px;"><div class="progress-bar bg-success" id="bar-education" role="progressbar" style="width: 68.9%"></div></div>
+                    </div>
+                    <div class="mb-0">
+                      <div class="d-flex justify-content-between mb-1"><span class="fw-semibold small">Income Index</span><span class="fw-bold small" id="val-income">0.695</span></div>
+                      <div class="progress" style="height: 6px;"><div class="progress-bar bg-warning" id="bar-income" role="progressbar" style="width: 69.5%"></div></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card glass-card p-4 border-0 mb-4">
+                  <div class="d-flex align-items-center gap-3 border-bottom pb-3 mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: var(--color-primary-light); color: var(--color-primary);">
+                      <i class="bi bi-info-circle fs-5"></i>
+                    </div>
+                    <h2 class="h5 fw-bold mb-0" style="font-family: var(--font-display);">Explainable AI (XAI) Factors</h2>
+                  </div>
+                  <div class="alert alert-warning border-0 p-3 rounded-3 mb-4" id="weakest-link-badge">
+                    <div class="small text-uppercase fw-bold mb-1" style="letter-spacing: 0.05em;">Weakest Dimension Bottleneck</div>
+                    <h3 class="h5 fw-bold mb-0" id="weakest-dimension-name">Education Index</h3>
+                  </div>
+                  <p class="text-secondary small mb-4">
+                    Relative contribution of each indicator compared to median values of the predicted category (<strong><span id="predicted-category-name">High</span></strong>).
+                  </p>
+                  <div class="table-responsive mb-4">
+                    <table class="table table-hover align-middle border rounded-3 overflow-hidden" id="xai-contributions-table" style="font-size: 0.85rem;">
+                      <thead style="background: var(--bg-primary);">
+                        <tr>
+                          <th>Indicator</th><th>Your Value</th><th>Category Median</th><th>Diff</th><th>Status</th><th>Weight</th>
+                        </tr>
+                      </thead>
+                      <tbody id="xai-table-body"></tbody>
+                    </table>
+                  </div>
+                  <div class="border-top pt-4">
+                    <h4 class="dashboard-metric-label mb-3">Recommended UNDP-Aligned Policies</h4>
+                    <ul class="list-group list-group-flush small bg-transparent border-0" id="policy-suggestions"></ul>
+                  </div>
+                </div>
+
+                <div class="action-buttons-row">
+                  <button type="button" class="btn btn-primary btn-lg w-100 py-3 d-flex align-items-center justify-content-center gap-2" id="btn-download-pdf">
+                    <i class="bi bi-file-earmark-pdf-fill fs-5"></i>
+                    Download PDF Prediction Report
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Section -->
+      <section class="history-panel">
+        <div class="content-panel">
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+            <div>
+              <h2 class="h4 fw-bold mb-1" style="font-family: var(--font-display);">Prediction History</h2>
+              <p class="text-muted small mb-0">Previous calculations stored in the local database.</p>
+            </div>
+            <div class="d-flex gap-2">
+              <a href="/api/history/export" class="btn btn-outline-secondary d-flex align-items-center gap-2" id="btn-export-csv">
+                <i class="bi bi-download"></i> Export CSV
+              </a>
+              <button type="button" class="btn btn-outline-danger d-flex align-items-center gap-2" id="btn-clear-history">
+                <i class="bi bi-trash"></i> Clear History
+              </button>
+            </div>
+          </div>
+          <div class="card glass-card border-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" id="history-table" style="font-size: 0.85rem;">
+                <thead style="background: var(--bg-primary);">
+                  <tr>
+                    <th>Date &amp; Time</th><th>Life Expectancy</th><th>Expected Schooling</th>
+                    <th>Mean Schooling</th><th>GNI Per Capita</th><th>Predicted HDI Category</th><th>Model Confidence</th>
+                  </tr>
+                </thead>
+                <tbody id="history-table-body">
+                  <tr><td colspan="7" class="text-center text-muted py-4">No prediction history recorded yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {% include 'partials/footer.html' %}
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

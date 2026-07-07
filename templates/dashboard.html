@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="HDI Predictor - Machine Learning Model Dashboard and Dataset Analytics">
+  <title>HDI Predictor - Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+  <div class="app-layout">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    {% include 'partials/sidebar.html' %}
+
+    <div class="app-main">
+      <header class="app-topbar">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle navigation">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <div>
+          <div class="topbar-title">Analytics Dashboard</div>
+          <div class="topbar-subtitle">Model performance &amp; dataset insights</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="content-panel">
+          <header class="dashboard-header mb-0 pb-4">
+            <h1 class="dashboard-title">Analytics &amp; Model Performance</h1>
+            <p class="dashboard-subtitle">Explore dataset distributions, feature importance, and classifier performance at a glance.</p>
+          </header>
+
+          <!-- Model Performance Cards -->
+          <section class="section-block" aria-label="Model performance metrics">
+            <div class="row g-4">
+              <div class="col-sm-6 col-lg-3">
+                <div class="card glass-card border-0 dashboard-metric-card h-100 hover-up stat-card-metric">
+                  <div class="dashboard-metric-label">Selected Classifier</div>
+                  <div class="dashboard-metric-value" style="color: var(--color-primary); font-size: 1.3rem;">{{ model_name }}</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <div class="card glass-card border-0 dashboard-metric-card h-100 hover-up stat-card-metric">
+                  <div class="dashboard-metric-label">Model Accuracy</div>
+                  <div class="dashboard-metric-value metric-counter" style="color: var(--color-primary);" data-counter="{{ metrics.get('accuracy', 0.0) * 100 }}" data-suffix="%" data-decimals="1">0.0%</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <div class="card glass-card border-0 dashboard-metric-card h-100 hover-up stat-card-metric">
+                  <div class="dashboard-metric-label">Weighted Precision</div>
+                  <div class="dashboard-metric-value metric-counter" style="color: var(--tier-high);" data-counter="{{ metrics.get('precision', 0.0) * 100 }}" data-suffix="%" data-decimals="1">0.0%</div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3">
+                <div class="card glass-card border-0 dashboard-metric-card h-100 hover-up stat-card-metric">
+                  <div class="dashboard-metric-label">Weighted Recall</div>
+                  <div class="dashboard-metric-value metric-counter" style="color: var(--tier-medium);" data-counter="{{ metrics.get('recall', 0.0) * 100 }}" data-suffix="%" data-decimals="1">0.0%</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Dataset & Feature Insights -->
+          <section class="section-block" aria-label="Dataset and feature insights">
+            <h2 class="section-heading">Dataset &amp; Feature Insights</h2>
+            <div class="row g-4">
+              <div class="col-lg-6">
+                <div class="card glass-card chart-card border-0 h-100 hover-up">
+                  <h3 class="chart-card-title">HDI Category Distribution</h3>
+                  <div id="plotly-pie-chart" class="plotly-chart-container"></div>
+                </div>
+              </div>
+              <div class="col-lg-6">
+                <div class="card glass-card chart-card border-0 h-100 hover-up">
+                  <h3 class="chart-card-title">Feature Importance Graph</h3>
+                  <div id="plotly-importance-chart" class="plotly-chart-container"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Model Evaluation -->
+          <section class="section-block" aria-label="Model evaluation">
+            <h2 class="section-heading">Model Evaluation</h2>
+            <div class="row g-4">
+              <div class="col-12">
+                <div class="card glass-card chart-card border-0 h-100 hover-up">
+                  <h3 class="chart-card-title">Classifier Comparison Chart</h3>
+                  <div id="plotly-models-comparison-chart" class="plotly-chart-container" style="height: 420px;"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Confusion Matrix -->
+          <section class="section-block" aria-label="Confusion matrix">
+            <h2 class="section-heading">Classification Results</h2>
+            <div class="row g-4 justify-content-center">
+              <div class="col-lg-7 col-xl-6">
+                <div class="card glass-card chart-card border-0 text-center h-100 hover-up">
+                  <h3 class="chart-card-title">Confusion Matrix</h3>
+                  <img src="{{ url_for('static', filename='images/confusion_matrix.png') }}" alt="Model Confusion Matrix" class="img-fluid rounded border chart-img" onerror="this.src='https://placehold.co/600x450/e8f2ff/1d6fe8?text=Confusion+Matrix+Not+Found'">
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      {% include 'partials/footer.html' %}
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      function getTextColor() {
+        return document.body.classList.contains('dark-mode') ? '#f8fafc' : '#0c1e3d';
+      }
+
+      fetch('/api/dataset-stats')
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) { console.error(data.error); return; }
+
+          const labels = ['Very High', 'High', 'Medium', 'Low'];
+          const values = labels.map(l => data.categories[l] || 0);
+
+          Plotly.newPlot('plotly-pie-chart', [{
+            values: values,
+            labels: labels,
+            type: 'pie',
+            hole: 0.4,
+            marker: { colors: ['#1d6fe8', '#10b981', '#f59e0b', '#ef4444'] },
+            textinfo: "label+percent",
+            insidetextorientation: "radial"
+          }], {
+            margin: { t: 40, b: 20, l: 20, r: 20 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Inter, sans-serif', color: getTextColor() },
+            legend: { orientation: 'h', y: -0.1 }
+          }, {responsive: true, displayModeBar: false});
+        })
+        .catch(err => console.error("Error loading dataset stats:", err));
+
+      fetch('/api/model-stats')
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) { console.error(data.error); return; }
+
+          const sortedFeatures = Object.entries(data.feature_importances).sort((a, b) => b[1] - a[1]);
+
+          Plotly.newPlot('plotly-importance-chart', [{
+            x: sortedFeatures.map(item => item[0].replace('_', ' ')),
+            y: sortedFeatures.map(item => item[1]),
+            type: 'bar',
+            marker: { color: '#1d6fe8', border: 0 }
+          }], {
+            margin: { t: 40, b: 50, l: 40, r: 20 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Inter, sans-serif', color: getTextColor() },
+            yaxis: { title: 'Relative Importance' }
+          }, {responsive: true, displayModeBar: false});
+
+          const modelsMetrics = data.all_models_metrics;
+          const modelNames = Object.keys(modelsMetrics);
+
+          Plotly.newPlot('plotly-models-comparison-chart', [
+            { x: modelNames, y: modelNames.map(m => modelsMetrics[m].accuracy), name: 'Accuracy', type: 'bar', marker: { color: '#1d6fe8' } },
+            { x: modelNames, y: modelNames.map(m => modelsMetrics[m].precision), name: 'Precision', type: 'bar', marker: { color: '#10b981' } },
+            { x: modelNames, y: modelNames.map(m => modelsMetrics[m].recall), name: 'Recall', type: 'bar', marker: { color: '#f59e0b' } },
+            { x: modelNames, y: modelNames.map(m => modelsMetrics[m].f1_score), name: 'F1-Score', type: 'bar', marker: { color: '#ef4444' } }
+          ], {
+            margin: { t: 40, b: 40, l: 50, r: 20 },
+            barmode: 'group',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Inter, sans-serif', color: getTextColor() },
+            yaxis: { range: [0, 1.0], tickformat: ',.0%' },
+            legend: { orientation: 'h', y: -0.15 }
+          }, {responsive: true});
+        })
+        .catch(err => console.error("Error loading model stats:", err));
+
+      const themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+          setTimeout(() => {
+            const update = { 'font.color': getTextColor() };
+            ['plotly-pie-chart', 'plotly-importance-chart', 'plotly-models-comparison-chart'].forEach(id => {
+              const el = document.getElementById(id);
+              if (el) Plotly.relayout(id, update);
+            });
+          }, 150);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
